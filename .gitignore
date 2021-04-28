@@ -1,0 +1,6 @@
+media/
+task
+.idea
+.env
+__pycache__/
+__pypackages__/
