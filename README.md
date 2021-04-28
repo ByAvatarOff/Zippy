@@ -4,5 +4,5 @@
 
 ## Frontend
 
-[Mihail](https://vk.com/id179278963)
+[Mihail](https://vk.com/id179278963)<br>
 [Vlad](https://vk.com/byavataroff)
