@@ -1,11 +1,12 @@
-Django==3.0.5
-djangorestframework==3.12.2
-djangorestframework-jsonapi==4.0.0
+Django==3.2.4
+djangorestframework==3.12.4
+djangorestframework-jsonapi==4.2.0
 djangorestframework-jwt==1.11.0
-djangorestframework-simplejwt==4.4.0
+djangorestframework-simplejwt==4.7.1
 djoser==2.0.5
 geoip2==4.1.0
 geos==0.2.2
 postgis==1.0.4
 psycopg2-binary==2.8.6
-PyJWT==1.7.1
+PyJWT==2.1.0
+python-decouple==3.4
