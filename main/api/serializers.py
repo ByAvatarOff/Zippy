@@ -20,7 +20,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 class UpdateProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        exclude = ['user', ]
+        exclude = ['user', 'geo_location']
 
 
 class UpdateLocationProfileSerializer(serializers.ModelSerializer):

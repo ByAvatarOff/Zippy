@@ -10,10 +10,6 @@ from django.contrib.gis.measure import D
 from django.db.models import Q
 
 
-def get_user(request):
-    return request.user
-
-
 def get_ip():
     try:
         conn = http.client.HTTPConnection('ifconfig.me')
@@ -34,17 +30,17 @@ def get_location():
         return None
 
 
-def filter_group(request):
-    from main.models import Profile
-    profile = Profile.objects.get(user=request.user)
-    if profile.group.lower() == 'base':
-        return Profile.objects.filter(Q(geo_location__distance_lte=(profile.geo_location, D(km=10))))[:11]
-    elif profile.group.lower() == 'premium':
-        return Profile.objects.filter(Q(geo_location__distance_lte=(profile.geo_location, D(km=25))))[:101]
-    elif profile.group.lower() == 'vip':
-        return Profile.objects.all()
-    else:
-        return None
+# def filter_group(request, queryset):
+#     profile = queryset.get(user=request.user)
+#     profile_group = profile.group.lower()
+#     if profile_group == 'base':
+#         return queryset.filter(Q(geo_location__distance_lte=(profile.geo_location, D(km=10))))[:11]
+#     elif profile_group == 'premium':
+#         return queryset.filter(Q(geo_location__distance_lte=(profile.geo_location, D(km=25))))[:101]
+#     elif profile.group.lower() == 'vip':
+#         return queryset
+#     else:
+#         return None
 
 
 def match(request, pk):
@@ -52,10 +48,11 @@ def match(request, pk):
     try:
         like_profile = Profile.objects.get(pk=pk)
         owner_profile = Profile.objects.get(user=request.user)
-        like = Like.objects.get(profile=like_profile, user=request.user) # обьекта лайка, которые лайкали юзера
+
+        like = Like.objects.get(profile=like_profile, user=owner_profile.user) # обьекта лайка, которые лайкали юзера
         like1 = Like.objects.get(profile=owner_profile, user=like_profile.user) # обьекты лайка, которые лайкал юзер
         if like.like and like1.like:
-            return HttpResponseRedirect(redirect_to='profiles')
+            return HttpResponseRedirect(redirect_to='chat')
         else:
             print('Not like')
     except Like.DoesNotExist:

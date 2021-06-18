@@ -1,5 +1,6 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
+from rest_framework import viewsets
 from main.api.serializers import ProfileSerializer, UpdateProfileSerializer,\
     UpdateLocationProfileSerializer, CreateAddContentSerializer, AddContentSerializer,\
     CreateLikeSerializer
@@ -7,32 +8,48 @@ from main.api import service
 from main.models import Profile, AddContent, Like
 
 
-class ProfileListView(generics.ListAPIView):
-    serializer_class = ProfileSerializer
+class ProfileViewSet(viewsets.ViewSet):
+    """
+    Class for view model Profile used viewsets
+    """
     permission_classes = [permissions.IsAuthenticated, ]
 
-    def get_queryset(self):
-        return service.filter_group(request=self.request)
+    def list(self, request):
+        queryset = Profile.objects.all()
+        serializer = ProfileSerializer(queryset, many=True)
+        return Response(serializer.data)
+        # return service.filter_group(request=self.request)
 
+    def retrieve(self, request):
+        queryset = Profile.objects.get(user__username=request.user)
+        serializer = ProfileSerializer(queryset)
+        return Response(serializer.data)
 
-class ProfileUpdateView(generics.UpdateAPIView):
-    queryset = ProfileListView
-    serializer_class = UpdateProfileSerializer
-    permission_classes = [permissions.IsAuthenticated, ]
-
-    def perform_update(self, serializer):
-        serializer.save(user=self.request.user)
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+    def partial_update(self, request):
+        instance = Profile.objects.get(user__username=request.user)
+        serializer = UpdateProfileSerializer(instance, data=request.data, partial=True)
+        # instance.geo_location = service.get_location()
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        serializer.save()
+        return Response(status=status.HTTP_200_OK)
 
-        if getattr(instance, '_prefetched_objects_cache', None):
-            instance._prefetched_objects_cache = {}
 
+class AddContentViewSet(viewsets.ViewSet):
+    """
+    Class for view content user
+    """
+    permission_classes = [permissions.IsAuthenticated, ]
+
+    def list(self, request):
+        queryset = AddContent.objects.filter(profile=Profile.objects.get(user=request.user))
+        serializer = AddContentSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def create(self, request):
+        # instance = AddContent.objects.all()
+        serializer = CreateAddContentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(profile=Profile.objects.get(user=request.user))
         return Response(serializer.data)
 
 
@@ -44,28 +61,18 @@ class AddContentCreateView(generics.CreateAPIView):
         serializer.save(profile=Profile.objects.get(user=self.request.user))
 
 
-class AddContentListView(generics.ListAPIView):
-    queryset = AddContent.objects.all()
-    serializer_class = AddContentSerializer
+class LikeViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated, ]
+    queryset = Like.objects.all()
 
-
-class UpdateLocation(generics.RetrieveUpdateAPIView):
-    queryset = ''
-    serializer_class = UpdateLocationProfileSerializer
-    permission_classes = [permissions.IsAuthenticated, ]
-
-    def get_object(self):
-        return Profile.objects.get(user=self.request.user)
-
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.geo_location = service.get_location()
-        instance.save()
-        return Response(status=status.HTTP_200_OK)
-
-    def patch(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+    def create(self, request):
+        try:
+            if Like.objects.get(user=self.request.user, profile=Profile.objects.get(pk=self.request.POST.get('profile'))):
+                return Response(status=status.HTTP_202_ACCEPTED)
+        except Like.DoesNotExist:
+            serializer = CreateLikeSerializer(self.queryset)
+            service.match(request=self.request, pk=self.request.data['profile'])
+            return Response(serializer.data)
 
 
 class CreateLikeView(generics.CreateAPIView):
@@ -81,8 +88,11 @@ class CreateLikeView(generics.CreateAPIView):
             return self.create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-        service.match(request=self.request, pk=self.request.data['profile'])
         serializer.save(user=self.request.user)
+        service.match(request=self.request, pk=self.request.data['profile'])
+
+
+
 
 
 

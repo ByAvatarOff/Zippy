@@ -52,7 +52,7 @@ class UserAPITestCase(APITestCase):
         token = response.data.get('token', False)
         # checks if token send back
         self.assertGreater(len(token), 0)
-        decoded = jwt.decode(token, key=settings.SECRET_KEY, algorithms=settings.SIMPLE_JWT['ALGORITHM'])
+        decoded = jwt.decode(token, key=settings.SECRET_KEY)
         user_id = decoded['user_id']
         # checks that token is own by requested user
         self.assertEqual(User.objects.get(pk=user_id).username,
@@ -78,11 +78,9 @@ class UserAPITestCase(APITestCase):
         access = response_on_refresh.data.get('access', '')
         # checks token existence
         self.assertGreater(len(access), 0)
-        decoded_on_login = jwt.decode(token_get_on_login, key=settings.SECRET_KEY,
-                                      algorithms=settings.SIMPLE_JWT['ALGORITHM'])
+        decoded_on_login = jwt.decode(token_get_on_login, key=settings.SECRET_KEY)
         user_id_on_login = decoded_on_login['user_id']
-        decoded_on_refresh = jwt.decode(access, key=settings.SECRET_KEY,
-                                        algorithms=settings.SIMPLE_JWT['ALGORITHM'])
+        decoded_on_refresh = jwt.decode(access, key=settings.SECRET_KEY)
         user_id_on_refresh = decoded_on_login['user_id']
         # checks if user gets its own token on refresh
         self.assertEqual(user_id_on_login, user_id_on_refresh)

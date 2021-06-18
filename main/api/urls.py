@@ -1,16 +1,17 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from main.api.views import ProfileListView, ProfileUpdateView, AddContentListView,\
-    AddContentCreateView, UpdateLocation, CreateLikeView
+from main.api.views import ProfileViewSet, AddContentViewSet, CreateLikeView, LikeViewSet, AddContentCreateView
 
 
 urlpatterns = [
-    # path('token/', TokenObtainPairView.as_view()),
-    # path('token/refresh/', TokenRefreshView.as_view()),
-    path('profiles/', ProfileListView.as_view(), name='profiles'),
-    path('profiles/update/', ProfileUpdateView.as_view()),
-    path('profiles/listcontent/', AddContentListView.as_view()),
-    path('profiles/addcontent/', AddContentCreateView.as_view()),
-    path('profiles/updategeo/', UpdateLocation.as_view()),
-    path('profiles/addlike/', CreateLikeView.as_view()),
+    path('profile/', ProfileViewSet.as_view({'get': 'retrieve'})),
+    path('profiles/', ProfileViewSet.as_view({'get': 'list'}), name='profiles'),
+    path('profiles/update/', ProfileViewSet.as_view({'post': 'partial_update'}), name='update'),
+    # path('profiles/updategeo/', ProfileViewSet.as_view({'post': 'update_geo'}), name='update_geo'),
+
+    path('profiles/listcontent/', AddContentViewSet.as_view({'get': 'list'})),
+    path('profiles/addcontent/', AddContentCreateView.as_view(), name='add_content'),
+    # path('profiles/addcontent/', AddContentViewSet.as_view({'post': 'create'}), name='add_content'),
+
+    # path('profiles/addlike/', CreateLikeView.as_view(), name='add_like'),
+    path('profiles/addlike/', LikeViewSet.as_view({'post': 'create'}), name='add_like'),
 ]
